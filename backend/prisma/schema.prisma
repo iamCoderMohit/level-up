@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(cuid())
+
+  username String @unique
+  avatarUrl String?
+  bio String?
+
+  totalXp Int @default(0)
+  level Int @default(1)
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+  lastActiveAt DateTime?
+
+  role Role @default(USER)
+
+  accounts Account[]
+  userTask UserTask[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  id String @id @default(cuid())
+  userId String
+  provider String
+  providerAccountId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+//Represents learning track.
+model Path {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  slug        String  @unique
+  order       Int
+
+  levels      Level[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Belongs to a Path.
+model Level {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  requiredXp  Int     @default(0)
+
+  pathId      String
+  path        Path    @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  tasks       Task[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Belongs to a Level.
+model Task {
+  id          String  @id @default(cuid())
+  title       String
+  description String
+  xpReward    Int     @default(10)
+  order       Int
+  difficulty  Difficulty @default(EASY)
+
+  levelId     String
+  level       Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  userTask UserTask[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model UserTask {
+  id        String @id @default(cuid())
+  userId    String
+  taskId    String
+  status    TaskStatus @default(PENDING)
+  completedAt DateTime?
+  repoUrl String?
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  APPROVED
+}

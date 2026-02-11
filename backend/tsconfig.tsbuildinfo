@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/server.ts"],"version":"5.9.3"}
+{"root":["./src/index.ts","./src/server.ts","./src/config/prisma.ts","./src/customtypes/custom.d.ts","./src/middlewares/verifyadmin.ts","./src/middlewares/verifyuser.ts","./src/routes/auth.ts","./src/routes/path.ts","./src/routes/submit.ts","./src/utils/apiresponse.ts","./src/utils/calculatestreak.ts"],"version":"5.9.3"}
