@@ -89,51 +89,93 @@ authRouter.get("/callback/github", async (req, res) => {
 
 authRouter.get("/me", verifyUser, async (req, res) => {
   try {
-    const userId = req.user.userId
+    const userId = req.user.userId;
 
     const user = await prisma.user.findUnique({
       where: {
-        id: userId
-      }
-    })
+        id: userId,
+      },
+    });
 
-    successResponse(res, user, "User details fetched")
+    successResponse(res, user, "User details fetched");
   } catch (error) {
-    console.error(error)
-    errorResponse(res, "Can't fetch user data")
+    console.error(error);
+    errorResponse(res, "Can't fetch user data");
   }
-})
+});
 
 authRouter.get("/achievements/:userId", verifyUser, async (req, res) => {
   try {
-    const userId = req.params.userId as string
+    const userId = req.params.userId as string;
 
-    if(!userId){
-      errorResponse(res, "Provide userId")
+    if (!userId) {
+      errorResponse(res, "Provide userId");
     }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: userId
-      }
-    })
+        id: userId,
+      },
+    });
 
-    if(!user){
-      errorResponse(res, "Invalid userId")
+    if (!user) {
+      errorResponse(res, "Invalid userId");
     }
 
     const data = {
       totalXp: user?.totalXp,
       currentStreak: user?.currentStreak,
       longestStreak: user?.longestStreak,
-      badge: calculateStreak(user?.currentStreak as number)
-    }
+      badge: calculateStreak(user?.currentStreak as number),
+    };
 
-    successResponse(res, data, "Achievements")
+    successResponse(res, data, "Achievements");
   } catch (error) {
-    console.log(error)
-    errorResponse(res, "Can't fetch achievements")
+    console.log(error);
+    errorResponse(res, "Can't fetch achievements");
   }
-})
+});
+
+authRouter.get("/currentLevel", verifyUser, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    const path = await prisma.path.findUnique({
+      where: { slug: "frontend" },
+      include: {
+        levels: {
+          orderBy: { order: "asc" },
+          include: { tasks: true },
+        },
+      },
+    });
+
+    const userTasks = await prisma.userTask.findMany({
+      where: { userId },
+    });
+
+    const completedTaskIds = new Set(userTasks.map((ut) => ut.taskId));
+
+    
+    let currentLevel = null;
+    
+    for (const level of path?.levels!) {
+     if(user?.totalXp! >= level.requiredXp){
+      currentLevel = level.order
+     }
+  }
+
+    successResponse(res, currentLevel, "Current level fetched")
+  } catch (error) {
+    console.error(error)
+    errorResponse(res, "Can't fetch current level")
+  }
+});
 
 export default authRouter;

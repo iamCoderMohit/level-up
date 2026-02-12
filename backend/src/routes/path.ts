@@ -53,6 +53,29 @@ pathRouter.get("/", verifyUser, async (req, res) => {
   }
 });
 
+//get the current path of user
+pathRouter.get("/getCurrentPath", verifyUser, async (req, res) => {
+  try {
+    const userId = req.user.userId
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    let currentPath
+
+    if(user?.totalXp! <= 1000 && user?.totalXp! > 0) currentPath = "Frontend Master"
+    if(user?.totalXp! <= 2000 && user?.totalXp! > 1000) currentPath = "Backend Architect"
+    if(user?.totalXp! <= 3000 && user?.totalXp! > 2000) currentPath = "FullStack Slayer"
+
+    successResponse(res, {currentPath}, "current path fetched")
+  } catch (error) {
+    console.error(error)
+      errorResponse(res, "Can't fetch current path")
+  }
+})
 
 //get paths with slug
 pathRouter.get("/:slug", async (req, res) => {
@@ -265,5 +288,7 @@ pathRouter.get("/getFullInfo/:path", verifyUser, async (req, res) => {
     errorResponse(res, "Faild to get info of path");
   }
 });
+
+
 
 export default pathRouter;
