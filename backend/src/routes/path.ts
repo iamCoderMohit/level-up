@@ -54,6 +54,10 @@ pathRouter.get("/", verifyUser, async (req, res) => {
 });
 
 //get the current path of user
+interface currentPath {
+  pathName: string;
+  pathSlug: string
+}
 pathRouter.get("/getCurrentPath", verifyUser, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -64,13 +68,13 @@ pathRouter.get("/getCurrentPath", verifyUser, async (req, res) => {
       }
     })
 
-    let currentPath
+    let currentPath: currentPath
 
-    if(user?.totalXp! <= 1000 && user?.totalXp! > 0) currentPath = "Frontend Master"
-    if(user?.totalXp! <= 2000 && user?.totalXp! > 1000) currentPath = "Backend Architect"
-    if(user?.totalXp! <= 3000 && user?.totalXp! > 2000) currentPath = "FullStack Slayer"
+    if(user?.totalXp! <= 1000 && user?.totalXp! > 0) currentPath = {pathName: "Frontend Master", pathSlug: "frontend"}
+    if(user?.totalXp! <= 2000 && user?.totalXp! > 1000) currentPath = {pathName: "Backend Architect", pathSlug: "backend"}
+    if(user?.totalXp! <= 3000 && user?.totalXp! > 2000) currentPath = {pathName: "FullStack Slayer", pathSlug: "fullstack"}
 
-    successResponse(res, {currentPath}, "current path fetched")
+    successResponse(res, currentPath!, "current path fetched")
   } catch (error) {
     console.error(error)
       errorResponse(res, "Can't fetch current path")
@@ -168,7 +172,8 @@ pathRouter.get("/:slug/level", verifyUser, async (req, res) => {
 
     const levelWithStatus = path!.levels.map((level: any) =>({
       ...level,
-      isUnlocked: user?.totalXp! >= level.requiredXp
+      isUnlocked: user?.totalXp! >= level.requiredXp,
+      parentSlug: path?.slug
     }))
 
     successResponse(res, {...path, levels: levelWithStatus}, "Levels fetched");

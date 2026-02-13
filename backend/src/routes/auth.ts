@@ -155,13 +155,6 @@ authRouter.get("/currentLevel", verifyUser, async (req, res) => {
         },
       },
     });
-
-    const userTasks = await prisma.userTask.findMany({
-      where: { userId },
-    });
-
-    const completedTaskIds = new Set(userTasks.map((ut) => ut.taskId));
-
     
     let currentLevel = null;
     

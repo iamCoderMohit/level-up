@@ -44,7 +44,7 @@ function ProfileCard() {
   const [currentPath, setCurrentPath] = useState("None");
   useEffect(() => {
     api.get("/path/getCurrentPath").then((res) => {
-      setCurrentPath(res.data.data.currentPath);
+      setCurrentPath(res.data.data.pathName);
     });
   }, []);
 

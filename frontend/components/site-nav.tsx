@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/user-avatar"
 import { Zap, Menu, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import api from "../lib/axios"
 import { useAuthStore } from "../store/authStore"
 
@@ -44,6 +44,13 @@ export function SiteNav({
     setLoading(true)
     window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/github`
   }
+
+    const [currentLevel, setCurrentLevel] = useState(0);
+  useEffect(() => {
+    api.get("/auth/currentLevel").then((res) => {
+      setCurrentLevel(res.data.data);
+    });
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur">
@@ -88,9 +95,9 @@ export function SiteNav({
             <div className="hidden sm:flex items-center gap-1.5 bg-secondary rounded-full px-3 py-1.5">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-foreground">
-                {level !== undefined && `Lvl ${level}`}
+                {`Lvl ${currentLevel}`},
                 {level !== undefined && xp !== undefined && " "}
-                {xp !== undefined && `${xp.toLocaleString()} XP`}
+                {xp !== undefined && `${user?.totalXp.toLocaleString()} XP`}
               </span>
             </div>
           )}
