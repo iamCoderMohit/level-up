@@ -81,6 +81,39 @@ pathRouter.get("/getCurrentPath", verifyUser, async (req, res) => {
   }
 })
 
+//get a path using order and slug
+pathRouter.get("/getOneLevel/:slug/:order", verifyUser, async (req, res) => {
+  try {
+    const {slug, order} = req.params
+
+    if(!slug || !order){
+      errorResponse(res, "Slug or order not provided")
+    }
+
+const level = await prisma.level.findFirst({
+  where: {
+    order: Number(order),
+    path: {
+      slug: String(slug),
+    },
+  },
+  include: {
+    tasks: {
+      orderBy: {
+        order: "asc"
+      }
+    },
+  },
+});
+
+
+    successResponse(res, level, "level fetched")
+  } catch (error) {
+    console.error(error)
+    errorResponse(res, "Can't fetch level")
+  }
+})
+
 //get paths with slug
 pathRouter.get("/:slug", async (req, res) => {
   try {
@@ -261,6 +294,8 @@ pathRouter.get("/level/:levelId/task", verifyUser, async (req, res) => {
 
 
 
+
+
 //get all info about a path
 pathRouter.get("/getFullInfo/:path", verifyUser, async (req, res) => {
   try {
@@ -294,6 +329,57 @@ pathRouter.get("/getFullInfo/:path", verifyUser, async (req, res) => {
   }
 });
 
+//get a task with task order, level order, path slug
+pathRouter.get("/:pathslug/:levelorder/:taskorder", verifyUser, async (req, res) => {
+  try {
+    const {pathslug, levelorder, taskorder} = req.params
+
+    if(!pathslug || !levelorder || !taskorder){
+      errorResponse(res, "Information not provided")
+    }
+
+const task = await prisma.task.findFirst({
+  where: {
+    order: Number(taskorder),
+    level: {
+      order: Number(levelorder),
+      path: {
+        slug: String(pathslug),
+      },
+    },
+  },
+});
 
 
+successResponse(res, task)
+  } catch (error) {
+    console.error(error)
+    errorResponse(res, "Can't fetch task")
+  }
+})
+
+
+//get a userTask with userId and taskId
+pathRouter.get("/getUserTask/:taskId", verifyUser, async (req, res) => {
+  try {
+    const {taskId} = req.params 
+    const {userId} = req.user
+
+    if(!taskId){
+      errorResponse(res, "taskId not provided")
+    }
+
+    const userTask = await prisma.userTask.findFirst({
+      where : {
+        userId,
+        taskId: taskId as string
+      }
+    })
+
+    successResponse(res, userTask, "userTask fetched successfully")
+  } catch (error) {
+    console.error(error)
+    errorResponse(res, "can't get userTask")
+  }
+})
 export default pathRouter;

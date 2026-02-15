@@ -88,14 +88,14 @@ export function SiteNav({
           {showStreak && streak !== undefined && (
             <div className="hidden sm:flex items-center gap-1.5 text-sm">
               <Zap className="w-4 h-4 text-streak" />
-              <span className="text-foreground font-medium">{streak} Day Streak</span>
+              <span className="text-foreground font-medium">{user?.currentStreak} Day Streak</span>
             </div>
           )}
           {showXP && xp !== undefined && (
             <div className="hidden sm:flex items-center gap-1.5 bg-secondary rounded-full px-3 py-1.5">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-foreground">
-                {`Lvl ${currentLevel}`},
+                {`Lvl ${currentLevel.currentLevel}`},
                 {level !== undefined && xp !== undefined && " "}
                 {xp !== undefined && `${user?.totalXp.toLocaleString()} XP`}
               </span>
@@ -146,7 +146,7 @@ export function SiteNav({
             {showStreak && streak !== undefined && (
               <div className="flex items-center gap-1.5 px-3 py-2 text-sm sm:hidden">
                 <Zap className="w-4 h-4 text-streak" />
-                <span className="text-foreground font-medium">{streak} Day Streak</span>
+                <span className="text-foreground font-medium">{user?.currentStreak} Day Streak</span>
               </div>
             )}
           </div>

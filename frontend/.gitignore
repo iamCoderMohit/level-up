@@ -1,4 +1,4 @@
 # Common ignores
 node_modules/
 .next/
-.env*.
+.env

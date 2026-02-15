@@ -119,7 +119,7 @@ export function PathsOverview() {
           xpEarned="500"
           modules="5"
           progress={42}
-          href={`/paths/${l.parentSlug}`}
+          href={`/paths/${l.parentSlug}/${l.order}`}
           />
         ))}
       </div>

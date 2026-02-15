@@ -146,25 +146,18 @@ authRouter.get("/currentLevel", verifyUser, async (req, res) => {
       }
     })
 
-    const path = await prisma.path.findUnique({
-      where: { slug: "frontend" },
-      include: {
-        levels: {
-          orderBy: { order: "asc" },
-          include: { tasks: true },
-        },
-      },
-    });
-    
-    let currentLevel = null;
-    
-    for (const level of path?.levels!) {
-     if(user?.totalXp! >= level.requiredXp){
-      currentLevel = level.order
-     }
-  }
+    const XP_PER_LEVEL = 500;
 
-    successResponse(res, currentLevel, "Current level fetched")
+const totalXp = user?.totalXp ?? 0;
+
+const currentLevel = Math.floor(totalXp / XP_PER_LEVEL);
+const xpInsideLevel = totalXp % XP_PER_LEVEL;
+//fix the level showing logic in the frontedn as its returning an object from here
+const data = {
+  currentLevel,
+  xpInsideLevel,
+};
+successResponse(res, data)
   } catch (error) {
     console.error(error)
     errorResponse(res, "Can't fetch current level")

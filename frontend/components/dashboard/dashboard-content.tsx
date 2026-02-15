@@ -4,7 +4,6 @@ import { UserAvatar } from "@/components/user-avatar";
 import { XPProgressBar } from "@/components/xp-progress-bar";
 import { StatusBadge } from "@/components/status-badge";
 import { QuestCard } from "@/components/quest-card";
-import { AchievementBadge } from "@/components/achievement-badge";
 import {
   Flame,
   Zap,
@@ -19,6 +18,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import api from "../../lib/axios";
 import { useAuthStore } from "../../store/authStore";
+import { getProgress } from "@/lib/getProgress";
 
 /* -------- Profile Card -------- */
 function ProfileCard() {
@@ -55,7 +55,7 @@ function ProfileCard() {
       <div className="flex items-center gap-4">
         <UserAvatar
           name={user?.username || "User"}
-          level={currentLevel || "0"}
+          level={currentLevel.currentLevel || "0"}
           size="lg"
           showLevel
         />
@@ -71,7 +71,7 @@ function ProfileCard() {
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">XP Progress</span>
               <span className="text-xs font-mono text-primary">
-                {currentLevel * 100} / 5,00 XP
+                {currentLevel.currentLevel * 100} / 5,00 XP
               </span>
             </div>
             <XPProgressBar
@@ -81,8 +81,8 @@ function ProfileCard() {
               size="md"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {500 - currentLevel * 100} XP needed to reach Level{" "}
-              {currentLevel + 1}. {"You're"} crushing it!
+              {500 - currentLevel.currentLevel * 100} XP needed to reach Level{" "}
+              {currentLevel.currentLevel + 1}. {"You're"} crushing it!
             </p>
           </div>
         </div>
@@ -211,22 +211,20 @@ export function DashboardContent() {
   const user = useAuthStore((state) => state.user);
   const [loading, setLoading] = useState(true);
 
-  console.log(user?.totalXp)
+  function getSlug() {
+    const xp = user?.totalXp;
 
-function getSlug() {
-  const xp = user?.totalXp;
+    if (xp == null) return undefined;
 
-  if (xp == null) return undefined;
-
-  if (xp <= 1000) return "frontend";
-  if (xp <= 2000) return "backend";
-  return "fullstack";
-}
+    if (xp <= 1000) return "frontend";
+    if (xp <= 2000) return "backend";
+    return "fullstack";
+  }
 
   const slug = getSlug();
   const [levels, setLevels] = useState([]);
   useEffect(() => {
-    if(!slug) return
+    if (!slug) return;
     setLoading(true);
     api.get(`/path/${slug}/level`).then((res) => {
       setLevels(res.data.data);
@@ -234,20 +232,6 @@ function getSlug() {
     });
   }, [slug]);
 
-  function getLevelProgress(totalXp: number, levelIndex: number) {
-    const XP_PER_TASK = 100;
-const TASKS_PER_LEVEL = 5;
-const XP_PER_LEVEL = XP_PER_TASK * TASKS_PER_LEVEL; // 500
-
-  const levelStartXp = levelIndex * XP_PER_LEVEL;
-  const levelEndXp = levelStartXp + XP_PER_LEVEL;
-
-  if (totalXp <= levelStartXp) return 0;
-
-  const xpInsideLevel = Math.min(totalXp, levelEndXp) - levelStartXp;
-
-  return Math.floor((xpInsideLevel / XP_PER_LEVEL) * 100);
-}
 
 
   return (
@@ -283,12 +267,14 @@ const XP_PER_LEVEL = XP_PER_TASK * TASKS_PER_LEVEL; // 500
           </div>
           <div className="flex flex-col gap-4">
             {!loading &&
-              levels.levels.map((level, index) => (
-                <QuestCard
+              levels.levels.map((level, index) => {
+    const {progress} = getProgress(user?.totalXp, level.order - 1)
+                return <QuestCard
+                key={level.id}
                   title={level.title}
                   description={level.description}
                   module={`${index + 1} / 2`}
-                  progress={getLevelProgress(user?.totalXp!, level.order - 1)}
+                  progress={progress}
                   status={"active"}
                   actionLabel={
                     user?.totalXp! >= level.requiredXp ? "Done" : "Resume"
@@ -296,28 +282,30 @@ const XP_PER_LEVEL = XP_PER_TASK * TASKS_PER_LEVEL; // 500
                   icon={<Code2 className="w-6 h-6 text-primary" />}
                   iconBg="bg-primary/10"
                 />
-              ))}
-              {loading && <div className="flex flex-col gap-4">
-                            <QuestCard
-              title="Loading your quests"
-              description="Master modern React with Hooks, Context API, and Redux. Build real-world applications."
-              module="Module 4/12: Advanced Hooks"
-              progress={65}
-              status="active"
-              actionLabel="Resume"
-              icon={<Code2 className="w-6 h-6 text-primary" />}
-              iconBg="bg-primary/10"
-            />
-            <QuestCard
-              title="Hang on blud"
-              description="Build scalable APIs with FastAPI, manage PostgreSQL databases, and deploy to AWS."
-              module="Module 2/10: Async Functions"
-              progress={12}
-              status="paused"
-              icon={<Terminal className="w-6 h-6 text-amber-400" />}
-              iconBg="bg-amber-500/10"
-            />
-              </div>}
+})}
+            {loading && (
+              <div className="flex flex-col gap-4">
+                <QuestCard
+                  title="Loading your quests"
+                  description="Master modern React with Hooks, Context API, and Redux. Build real-world applications."
+                  module="Module 4/12: Advanced Hooks"
+                  progress={65}
+                  status="active"
+                  actionLabel="Resume"
+                  icon={<Code2 className="w-6 h-6 text-primary" />}
+                  iconBg="bg-primary/10"
+                />
+                <QuestCard
+                  title="Hang on blud"
+                  description="Build scalable APIs with FastAPI, manage PostgreSQL databases, and deploy to AWS."
+                  module="Module 2/10: Async Functions"
+                  progress={12}
+                  status="paused"
+                  icon={<Terminal className="w-6 h-6 text-amber-400" />}
+                  iconBg="bg-amber-500/10"
+                />
+              </div>
+            )}
           </div>
         </div>
 
