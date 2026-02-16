@@ -1,7 +1,9 @@
 'use client';
 
 import { SiteNav } from '@/components/site-nav';
-import { useState } from 'react';
+import api from '@/lib/axios';
+import { socket } from '@/lib/socket';
+import React, { useEffect, useState } from 'react';
 
 // Types
 type Message = {
@@ -50,25 +52,51 @@ const CodeBlock = ({ code }: { code: string }) => (
 
 const MessageItem = ({ message }: { message: Message }) => (
   <div className="flex gap-3 px-4 py-4 hover:bg-gray-800/30 transition-colors">
-    <Avatar name={message.author} />
+    <Avatar name={message.user.username} />
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2 mb-1">
-        <span className="font-semibold text-white">{message.author}</span>
+        <span className="font-semibold text-white">{message.user.username}</span>
         <Badge text={message.role} color={message.role === "LVL 10 SORCERER" ? "purple" : "blue"} />
         <span className="text-xs text-gray-500">{message.time}</span>
       </div>
       <div className="text-gray-300 text-sm leading-relaxed">
         {message.content}
       </div>
-      {message.hasCode && message.codeContent && (
+      {/* {message.hasCode && message.codeContent && (
         <CodeBlock code={message.codeContent} />
-      )}
+      )} */}
     </div>
   </div>
 );
 
-const MessageInput = () => {
-  const [message, setMessage] = useState('');
+const MessageInput = ({messages, setMessages}) => {
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    // when connected
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id);
+    });
+
+    // receive message
+    socket.on("receive_message", (data) => {
+      setMessages((prev) => [...prev, data]);
+    });
+
+    // cleanup
+    return () => {
+      socket.off("receive_message");
+    };
+  }, []);
+
+  const sendMessage = () => {
+    socket.emit("send_message", {
+      message: message,
+      time: new Date(),
+    });
+
+    setMessage("");
+  };
   
   return (
     <div className="border-t border-gray-800 bg-[#0a0e1a]">
@@ -112,7 +140,9 @@ const MessageInput = () => {
         
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-gray-500">Enter to send</span>
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+          onClick={sendMessage}
+          >
             Send
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -124,9 +154,18 @@ const MessageInput = () => {
   );
 };
 
-// Main Chat Component
+// Main Chat Component  
 export default function ChatPage() {
-  const messages: Message[] = [
+
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    api.get("/chat").then(
+      res => setMessages(res.data.data)
+    )
+  }, [])
+
+  const demomessages: Message[] = [
     {
       id: '1',
       author: 'PixelPuncher',
@@ -185,22 +224,15 @@ export default function ChatPage() {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto">
-          {messages.map((message) => (
-            <MessageItem key={message.id} message={message} />
+          {messages.map((m) => (
+            <MessageItem key={m.id} message={m} />
           ))}
           
-          {/* Reaction indicator */}
-          <div className="px-4 pb-4">
-            <div className="flex items-center gap-1 text-xs text-gray-500 ml-11">
-              <span className="text-yellow-500">⭐</span>
-              <span>FullStackHero reacted via React 😅</span>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Input Area */}
-      <MessageInput />
+      <MessageInput messages={messages} setMessages={setMessages} />
     </div>
     </>
   );

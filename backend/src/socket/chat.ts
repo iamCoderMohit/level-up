@@ -13,6 +13,7 @@ export const registerChatHandlers = (io: Server) => {
 
     socket.on("send_message", async (data) => {
       try {
+        console.log("sent a message", data)
         if (!data.message || data.message.length > 500) {
           return;
         }
