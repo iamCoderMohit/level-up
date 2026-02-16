@@ -8,7 +8,7 @@ import chatRouter from "./routes/chat.js"
 
 const app = express()
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://level-up-three-gamma.vercel.app"],
     credentials: true
 }))
 app.use(cookieParser())

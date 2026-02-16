@@ -79,8 +79,9 @@ authRouter.get("/callback/github", async (req, res) => {
 
     res.cookie("access_token", token, {
       httpOnly: true,
-      secure: false, //true in prod
+      secure: true, //true in prod
       sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.redirect(process.env.FRONTEND_URL!);
