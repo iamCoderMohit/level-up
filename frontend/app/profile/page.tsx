@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 'use client';
 
 import { SiteNav } from '@/components/site-nav';
@@ -245,14 +247,14 @@ export default function ProfilePage() {
             <div className="relative mb-4">
               <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden border-2 border-blue-500">
                 <img 
-                  src={user.avatarUrl} 
+                  src={user?.avatarUrl} 
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                 <div className="px-3 py-1 bg-blue-600 rounded-full text-xs font-bold">
-                  {user.level}
+                  {user?.level}
                 </div>
               </div>
             </div>
