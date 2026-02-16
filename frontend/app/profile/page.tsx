@@ -1,11 +1,8 @@
-export const dynamic = "force-dynamic";
-
 'use client';
 
+
 import { SiteNav } from '@/components/site-nav';
-import api from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
-import { useEffect, useState } from 'react';
 
 // Types
 type Trophy = {
