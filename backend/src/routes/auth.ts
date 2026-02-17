@@ -82,6 +82,7 @@ authRouter.get("/callback/github", async (req, res) => {
       secure: true, //true in prod
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/"
     });
 
     res.redirect(process.env.FRONTEND_URL!);
